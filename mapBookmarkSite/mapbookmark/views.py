@@ -1,5 +1,5 @@
-from django.http import HttpResponse
+from django.shortcuts import render
 
 
 def index(request):
-    return HttpResponse("Hello, world. 첫 페이지입니다!")
+    return render(request, 'mapbookmark/index.html')
