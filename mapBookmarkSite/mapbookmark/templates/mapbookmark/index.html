@@ -1,44 +1,28 @@
+<!-- index.html -->
+{% load static %} <!-- 현재 html 파일 내에서 static 디렉토리의 파일을 가져올 수 있도록 추가했습니다. -->
 <!DOCTYPE html>
 <html>
 <head>
 	<title>제목</title>
 	<meta charset="utf-8"/>
 	<script src="https://developers.kakao.com/sdk/js/kakao.story.min.js"></script>
+
 </head>
 <body>
 <h1>Hello, World!</h1>
 <div>
 	<p>첫 페이지 생성했습니다!</p>
+	<!-- session_id는 로그인 시 가지고 있는 데이터입니다.-->
+	{% if session_id %}
+	<p>sessionID : <strong>{{ session_id }}</strong></p>
+	{% endif %}
 </div>
-<img src="./kakao_login_large_narrow.png"/>
-<script type="text/javascript">
-function loginWithKakao() {
-  Kakao.Auth.authorize({
-    redirectUri: 'https://developers.kakao.com/tool/demo/oauth'
-  })
-}
-// 아래는 데모를 위한 UI 코드입니다.
-displayToken()
-function displayToken() {
-  const token = getCookie('authorize-access-token')
-  if(token) {
-    Kakao.Auth.setAccessToken(token)
-    Kakao.Auth.getStatusInfo(({ status }) => {
-      if(status === 'connected') {
-        document.getElementById('token-result').innerText = 'login success. token: ' + Kakao.Auth.getAccessToken()
-      } else {
-        Kakao.Auth.setAccessToken(null)
-      }
-    })
-  }
-}
-function getCookie(name) {
-  const value = "; " + document.cookie;
-  const parts = value.split("; " + name + "=");
-  if (parts.length === 2) return parts.pop().split(";").shift();
-}
+<!-- 로그인이 필요할 때 로그인 이미지를 보여줍니다.-->
+{% if not session_id %}
+<a href="/login"><img src="{% static 'mapbookmark/images/kakao_login_large_narrow.png' %}"/></a>
+{% else %}
+<a href="/logout">로그아웃 하기</a>
+{% endif %}
 
-
-</script>
 </body>
 </html>
