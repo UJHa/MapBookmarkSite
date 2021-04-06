@@ -9,4 +9,5 @@ urlpatterns = [
     path('logout', views.logout, name='logout'),
     path('sign_up', views.sign_up, name='sign_up'),
     path('save_marker', views.save_marker, name='save_marker'),
+    path('get_markers', views.get_markers, name='get_markers'),
 ]

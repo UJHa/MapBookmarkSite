@@ -1,3 +1,35 @@
+$.ajax({
+    url:'get_markers',
+    data : { 'FD' : 'Front End data'},
+//    dataType: "json",
+    success:function(data)
+    {
+        console.log(data[0]);
+//        $('#data_table').html(data)
+        for (d in data) {
+//            console.log('데이터 받아옴 : ' + property);
+            console.log(`index : ${d} ================`);
+            console.log(`${data[d]['id']}`);
+            console.log(`${data[d]['member_id_id']}`);
+            console.log(`${data[d]['latitude']}`);
+            console.log(`${data[d]['longitude']}`);
+            console.log(`${data[d]['title']}`);
+            console.log(`${data[d]['content']}`);
+//            {'id': 1, 'member_id_id': 1679977277, 'latitude': 33, 'longitude': 126, 'title': '제목입니다', 'content': '.내용ㅇ입니다.'}
+        }
+    }
+});
+//$.ajax({
+//    url: "/ajax/",
+//    type: "POST",
+//    data: name,
+//    cache:false,
+//    dataType: "json",
+//    success: function(resp){
+//        alert ("resp: "+resp.name);
+//    }
+//});
+
 var container = document.getElementById('map');
 //초기 위치 값 설정
 var options = {

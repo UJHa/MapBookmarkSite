@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 import requests
 
 from .models import Member, Marker
@@ -131,3 +131,20 @@ def get_token_info(token):
     response = requests.get(URL, headers=_headers)
 
     return response
+
+
+def get_markers(request):
+    data = []
+    if request.session.get('access_token'):
+        response = get_token_info(request.session.get('access_token'))
+        if response.status_code == 200:
+            _datas = response.json()
+            member_id = _datas['id']
+
+            markers = Marker.objects.filter(member_id=member_id)
+            for value in markers.values():
+                data.append(value)
+            print(data)
+    print('마커 데이터들 반환합시다')
+
+    return JsonResponse(data, safe=False)
