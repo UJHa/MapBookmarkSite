@@ -6,7 +6,7 @@
 	<title>제목</title>
 	<meta charset="utf-8"/>
 	<script src="https://developers.kakao.com/sdk/js/kakao.story.min.js"></script>
-
+	<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey="></script>
 </head>
 <body>
 <h1>Hello, World!</h1>
@@ -22,6 +22,12 @@
 <a href="/login"><img src="{% static 'mapbookmark/images/kakao_login_large_narrow.png' %}"/></a>
 {% else %}
 <a href="/logout">로그아웃 하기</a>
+{% endif %}
+
+{% if session_id %}
+<div id="map" style="width:500px;height:400px;"></div>
+<p id="result"></p>
+<script type="text/javascript" src="{% static 'mapbookmark/scripts/bookmark.js' %}"></script>
 {% endif %}
 
 </body>

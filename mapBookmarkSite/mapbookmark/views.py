@@ -2,7 +2,9 @@ from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 import requests
 
-REST_API_KEY = '5e605b41268c5bff86ecff8272e0fb3a' #앱의 REST API 키를 입력하세요.
+from .models import Member, Marker
+
+REST_API_KEY = '' #앱의 REST API 키를 입력하세요.
 REDIRECT_URL = 'http://127.0.0.1:8000/login_request'
 
 
@@ -42,19 +44,90 @@ def login_request(request):
         else:
             return HttpResponse(f'카카오 로그인 시 토큰 정보를 받지 못했습니다.실패 코드 : {response.status_code}')
 
-        return HttpResponseRedirect('/')
+        return HttpResponseRedirect('/sign_up')
     else:
         return HttpResponse('카카오 로그인 시 인가 코드를 받지 못했습니다.')
 
 
 def logout(request):
     token = request.session['access_token']
+    print(f'token : {token}')
     if token:
         URL = "https://kapi.kakao.com/v1/user/logout"
         _headers = {'Authorization': f"Bearer {token}"}
-        _response = requests.post(URL, headers=_headers)
-        if _response.status_code == 200:
+        response = requests.post(URL, headers=_headers)
+        if response.status_code == 200:
+            del request.session['access_token']
+        # 유효하지 않은 토큰 요청 시 세션이 저장한 토큰 제거
+        elif response.status_code == -401:
             del request.session['access_token']
         else:
-            return HttpResponse(f'로그아웃에 실패했습니다. 실패 코드 : {_response.status_code}')
+            return HttpResponse(f'로그아웃에 실패했습니다. 실패 코드 : {response.status_code}')
     return HttpResponseRedirect('/')
+
+
+def sign_up(request):
+    if request.session.get('access_token'):
+        token = request.session.get('access_token')
+        print(f'token : {token}')
+        # 카카오 API에서 토큰을 통하여 회원번호를 가져옵니다.
+        response = get_token_info(token)
+        if response.status_code == 200:
+            _datas = response.json()
+            member_id = _datas['id']
+            print(f'회원번호 : {member_id}')
+            # 기존에 가입한 회원일 때
+            if Member.objects.filter(id=member_id).count() == 1:
+                # 로그인 성공 후 첫 페이지로 이동합니다.
+                return HttpResponseRedirect('/')
+            elif Member.objects.filter(id=member_id).count() == 0:
+                # Member 테이블에 회원정보, 이름 데이터 저장하기(데이터 삽입)
+
+                # rest api를 통하여 이름 정보 불러오기
+                URL = f'https://kapi.kakao.com/v2/user/me'
+                _headers = {'Authorization': f"Bearer {token}"}
+                response = requests.get(URL, headers=_headers)
+
+                _name = ''
+                if response.status_code == 200:
+                    _user_datas = response.json()
+                    _name = _user_datas['properties']['nickname']
+                    print(f'로그인 이름 : {_name}')
+                else:
+                    return HttpResponse(f'이름 정보를 불러오는 것에 실패했습니다. 실패 코드 : {response.status_code}')
+
+                # 데이터를 member 테이블에 추가
+                m = Member(id=member_id, name=_name)
+                m.save()
+
+                return HttpResponseRedirect('/')
+            else:
+                return HttpResponse(f'같은 회원 번호가 여러번 저장되었습니다.')
+
+        else:
+            return HttpResponse(f'토큰 정보 조회가 실패했습니다. 실패 코드 : {response.status_code}')
+        # DB의 member 테이블에서 토큰의 회원번호가 id로 저장 여부를 확인합니다.
+
+def save_marker(request):
+    print('asdf')
+    if request.session.get('access_token'):
+        response = get_token_info(request.session.get('access_token'))
+        if response.status_code == 200:
+            _datas = response.json()
+            member_id = _datas['id']
+
+            member = Member.objects.get(id=member_id)
+
+            member.marker_set.create(latitude=33,longitude=126,title='제목 입력',content='내용 입력')
+            return HttpResponseRedirect('/')
+    else:
+        pass
+    return HttpResponse(f'로그아웃 되어서 저장에 실패했습니다. 다시 로그인해 주세요.')
+
+
+def get_token_info(token):
+    URL = f'https://kapi.kakao.com/v1/user/access_token_info'
+    _headers = {'Authorization': f"Bearer {token}", 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'}
+    response = requests.get(URL, headers=_headers)
+
+    return response
