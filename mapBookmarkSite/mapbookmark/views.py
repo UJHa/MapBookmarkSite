@@ -106,10 +106,12 @@ def sign_up(request):
 
         else:
             return HttpResponse(f'토큰 정보 조회가 실패했습니다. 실패 코드 : {response.status_code}')
-        # DB의 member 테이블에서 토큰의 회원번호가 id로 저장 여부를 확인합니다.
+
 
 def save_marker(request):
-    print('asdf')
+    query_dict = request.GET
+    _latitude = float(query_dict.get('latitude'))
+    _longitude = float(query_dict.get('longitude'))
     if request.session.get('access_token'):
         response = get_token_info(request.session.get('access_token'))
         if response.status_code == 200:
@@ -118,10 +120,8 @@ def save_marker(request):
 
             member = Member.objects.get(id=member_id)
 
-            member.marker_set.create(latitude=33,longitude=126,title='제목 입력',content='내용 입력')
+            member.marker_set.create(latitude=_latitude, longitude=_longitude, title='제목 입력 기본값22', content='내용 입력 기본값')
             return HttpResponseRedirect('/')
-    else:
-        pass
     return HttpResponse(f'로그아웃 되어서 저장에 실패했습니다. 다시 로그인해 주세요.')
 
 
