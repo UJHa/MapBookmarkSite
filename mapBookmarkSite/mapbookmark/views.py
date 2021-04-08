@@ -80,9 +80,8 @@ def sign_up(request):
             if Member.objects.filter(id=member_id).count() == 1:
                 # 로그인 성공 후 첫 페이지로 이동합니다.
                 return HttpResponseRedirect('/')
+            # 신규 가입 회원일 때
             elif Member.objects.filter(id=member_id).count() == 0:
-                # Member 테이블에 회원정보, 이름 데이터 저장하기(데이터 삽입)
-
                 # rest api를 통하여 이름 정보 불러오기
                 URL = f'https://kapi.kakao.com/v2/user/me'
                 _headers = {'Authorization': f"Bearer {token}"}
@@ -125,6 +124,7 @@ def save_marker(request):
     return HttpResponse(f'로그아웃 되어서 저장에 실패했습니다. 다시 로그인해 주세요.')
 
 
+# rest api로 토큰의 정보 요청 시 응답을 반환하는 함수
 def get_token_info(token):
     URL = f'https://kapi.kakao.com/v1/user/access_token_info'
     _headers = {'Authorization': f"Bearer {token}", 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'}
