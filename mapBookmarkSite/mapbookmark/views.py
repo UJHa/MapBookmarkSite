@@ -13,7 +13,14 @@ def index(request):
     if request.session.get('access_token'):
         session_id = request.session.get('access_token')
 
-    return render(request, 'mapbookmark/index.html', {'session_id' : session_id})
+        # 카카오 API에서 토큰의 유효 여부를 검사합니다.
+        response = get_token_info(session_id)
+        if response.status_code != 200:
+            del request.session['access_token']
+            session_id = None
+        marker_list = Marker.objects.all()
+
+    return render(request, 'mapbookmark/index.html', {'session_id' : session_id, 'marker_list' : marker_list})
 
 
 def login(request):
@@ -108,9 +115,15 @@ def sign_up(request):
 
 
 def save_marker(request):
-    query_dict = request.GET
+    query_dict = request.POST
+    print(query_dict)
+
     _latitude = float(query_dict.get('latitude'))
     _longitude = float(query_dict.get('longitude'))
+    _address_name = str(query_dict.get('address_name'))
+    _title = str(query_dict.get('title'))
+    _content = str(query_dict.get('content'))
+
     if request.session.get('access_token'):
         response = get_token_info(request.session.get('access_token'))
         if response.status_code == 200:
@@ -119,7 +132,7 @@ def save_marker(request):
 
             member = Member.objects.get(id=member_id)
 
-            member.marker_set.create(latitude=_latitude, longitude=_longitude, title='제목 입력 기본값22', content='내용 입력 기본값')
+            member.marker_set.create(address_name=_address_name, latitude=_latitude, longitude=_longitude, title=_title, content=_content)
             return HttpResponseRedirect('/')
     return HttpResponse(f'로그아웃 되어서 저장에 실패했습니다. 다시 로그인해 주세요.')
 
@@ -148,3 +161,27 @@ def get_markers(request):
     print('마커 데이터들 반환합시다')
 
     return JsonResponse(data, safe=False)
+
+
+def delete_marker(request):
+    query_dict = request.GET
+    _id = int(query_dict.get('id'))
+
+    del_marker = Marker.objects.filter(id=_id)
+    del_marker.delete()
+    return HttpResponseRedirect('/')
+
+
+def edit_marker(request):
+    query_dict = request.POST
+    print(query_dict)
+    _id = int(query_dict.get('id'))
+    _title = str(query_dict.get('title'))
+    _content = str(query_dict.get('content'))
+
+    markers = Marker.objects.get(id=_id)
+    markers.title = _title
+    markers.content = _content
+    markers.save()
+
+    return HttpResponseRedirect('/')
